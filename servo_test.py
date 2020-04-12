@@ -8,8 +8,10 @@ from time import sleep
 from collections import namedtuple
 
 
-SERVOS_PORT_BASE = 1200   # base port
-SERVOS_ID_BASE    = 0x010  # base CAN ID
+SERVOS_PORT_BASE    = 32000  # base port
+SERVOS_ID_BASE      = 0x010  # base CAN ID
+TX_ID_OFFSET        = 0x400  # Offset to board ID for TX ID (most significant bit at 1)
+
 MSG_SERVO = BusMessage(servo=ServoMsg())
 MSG_PUMP  = BusMessage(pumpAndValve=PumpAndValveMsg())
 
@@ -69,10 +71,10 @@ def main():
     boards = [socket.socket(socket.AF_INET, socket.SOCK_STREAM) for _ in range(5)]
     for i, sock in enumerate(boards):
         port = SERVOS_PORT_BASE + i
-        can_rx = (SERVOS_ID_BASE + i)<<1
-        can_tx = can_rx + 1
-        can_tx = format(can_tx, 'x')
+        can_rx = SERVOS_ID_BASE + i
+        can_tx = can_rx | TX_ID_OFFSET
         can_rx = format(can_rx, 'x')
+        can_tx = format(can_tx, 'x')
         print("CAN IDs:", can_rx, can_tx)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
